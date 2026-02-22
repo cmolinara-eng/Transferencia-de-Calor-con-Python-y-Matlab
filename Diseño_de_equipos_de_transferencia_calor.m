@@ -521,163 +521,308 @@ fprintf('\n=============================================\n');
 
 %% Ejemplo 7.7
 
-%% DISEÑO DE INTERCAMBIADOR DE CORAZA Y TUBOS (Kern) - VERSIÓN COMPLETA
+%% Diseño de Intercambiador de Coraza y Tubos
+% Equivalente completo al código Python (todos los diámetros y arreglos)
+
 clear; clc;
 
 % ==========================================
-% 0. Bases de Datos (Kern)
+% 0. Base de Datos (Kern) - Tabla 10
 % ==========================================
 
-% Diámetros internos, áreas de flujo y BWG según Tabla 10
-% Formato: d.BWG = [...]; d.ID = [...]; d.Area = [...];
-Tabla_10.d075.BWG = [10, 11, 12, 13, 14, 15, 16, 17, 18];
-Tabla_10.d075.ID_in = [0.482, 0.510, 0.532, 0.560, 0.584, 0.606, 0.620, 0.634, 0.652];
-Tabla_10.d075.Flow_area_in2 = [0.182, 0.204, 0.223, 0.247, 0.268, 0.289, 0.302, 0.314, 0.334];
+% --- 0.75 in OD ---
+T10.d075.BWG             = [10, 11, 12, 13, 14, 15, 16, 17, 18];
+T10.d075.Wall_in         = [0.134, 0.120, 0.109, 0.095, 0.083, 0.072, 0.065, 0.058, 0.049];
+T10.d075.ID_in           = [0.482, 0.510, 0.532, 0.560, 0.584, 0.606, 0.620, 0.634, 0.652];
+T10.d075.Flow_area_in2   = [0.182, 0.204, 0.223, 0.247, 0.268, 0.289, 0.302, 0.314, 0.334];
 
-% Layout de tubos para 3/4" OD en pitch de 1" (Arreglo Cuadrado)
-layout_075.ids = [8, 10, 12, 13.5, 15.5, 17.5, 19.5, 21.25, 23.25, 25, 27, 29, 31, 33, 35, 37, 39];
-layout_075.data = [
-    32,  26,  20,  20,  NaN;
-    52,  52,  40,  36,  NaN;
-    81,  76,  68,  68,  60;
-    97,  90,  82,  76,  70;
-    137, 124, 116, 108, 108;
-    177, 166, 158, 150, 142;
-    224, 220, 204, 192, 188;
-    277, 270, 246, 240, 234;
-    341, 324, 308, 302, 292;
-    413, 394, 370, 356, 346;
-    481, 460, 432, 420, 408; % <--- Aquí están tus resultados (27")
-    553, 526, 480, 468, 456; % <--- Y aquí (29")
-    657, 640, 600, 580, 560;
-    749, 718, 688, 676, 648;
-    845, 824, 780, 766, 748;
-    934, 914, 886, 866, 838;
-    1049, 1024, 982, 968, 948];
+% --- 1 in OD ---
+T10.d1.BWG               = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+T10.d1.Wall_in           = [0.165, 0.148, 0.134, 0.120, 0.109, 0.095, 0.083, 0.072, 0.065, 0.058, 0.049];
+T10.d1.ID_in             = [0.670, 0.704, 0.732, 0.760, 0.782, 0.810, 0.834, 0.856, 0.870, 0.884, 0.902];
+T10.d1.Flow_area_in2     = [0.355, 0.389, 0.421, 0.455, 0.479, 0.515, 0.546, 0.576, 0.594, 0.613, 0.639];
 
-% ----------------------------------------------------------
-% Parámetros y Propiedades (Consistentes con tu CoolProp)
-% ----------------------------------------------------------
+% --- 1.25 in OD ---
+T10.d125.BWG             = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+T10.d125.Wall_in         = [0.165, 0.148, 0.134, 0.120, 0.109, 0.095, 0.083, 0.072, 0.065, 0.058, 0.049];
+T10.d125.ID_in           = [0.920, 0.954, 0.982, 1.01, 1.03, 1.06, 1.08, 1.11, 1.12, 1.13, 1.15];
+T10.d125.Flow_area_in2   = [0.665, 0.714, 0.757, 0.800, 0.836, 0.884, 0.923, 0.960, 0.985, 1.01, 1.04];
+
+% --- 1.5 in OD ---
+T10.d15.BWG              = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+T10.d15.Wall_in          = [0.165, 0.148, 0.134, 0.120, 0.109, 0.095, 0.083, 0.072, 0.065, 0.058, 0.049];
+T10.d15.ID_in            = [1.17, 1.20, 1.23, 1.26, 1.28, 1.31, 1.33, 1.36, 1.37, 1.38, 1.40];
+T10.d15.Flow_area_in2    = [1.075, 1.14, 1.19, 1.25, 1.29, 1.35, 1.40, 1.44, 1.47, 1.50, 1.54];
+
+% ==========================================
+% Layouts de tubos (columnas: 1-P,2-P,4-P,6-P,8-P)
+% ==========================================
+
+% 3/4 in OD, 1 in pitch
+lay(1).OD_in    = 0.75;
+lay(1).pitch_in = 1.0;
+lay(1).tabla    = T10.d075;
+lay(1).shell_ids = [8, 10, 12, 13.5, 15.5, 17.5, 19.5, 21.25, 23.25, 25, 27, 29, 31, 33, 35, 37, 39];
+lay(1).data = [
+    32,   26,   20,   20,   NaN;
+    52,   52,   40,   36,   NaN;
+    81,   76,   68,   68,   60;
+    97,   90,   82,   76,   70;
+    137,  124,  116,  108,  108;
+    177,  166,  158,  150,  142;
+    224,  220,  204,  192,  188;
+    277,  270,  246,  240,  234;
+    341,  324,  308,  302,  292;
+    413,  394,  370,  356,  346;
+    481,  460,  432,  420,  408;
+    553,  526,  480,  468,  456;
+    657,  640,  600,  580,  560;
+    749,  718,  688,  676,  648;
+    845,  824,  780,  766,  748;
+    934,  914,  886,  866,  838;
+    1049, 1024, 982,  968,  948];
+
+% 1 in OD, 1.25 in pitch
+lay(2).OD_in    = 1.0;
+lay(2).pitch_in = 1.25;
+lay(2).tabla    = T10.d1;
+lay(2).shell_ids = [8, 10, 12, 13.5, 15.5, 17.5, 19.5, 21.25, 23.25, 25, 27, 29, 31, 33, 35, 37, 39];
+lay(2).data = [
+    21,  16,  14,  NaN, NaN;
+    32,  26,  24,  24,  NaN;
+    48,  45,  40,  38,  36;
+    61,  56,  52,  48,  44;
+    81,  76,  68,  68,  64;
+    112, 112, 96,  90,  82;
+    138, 132, 128, 122, 116;
+    177, 166, 158, 152, 148;
+    213, 208, 192, 184, 184;
+    260, 252, 238, 226, 222;
+    300, 288, 278, 268, 260;
+    341, 326, 300, 294, 286;
+    406, 398, 380, 368, 358;
+    465, 460, 432, 420, 414;
+    522, 518, 488, 484, 472;
+    596, 574, 562, 544, 532;
+    665, 644, 624, 612, 600];
+
+% 1.25 in OD, 1.625 in pitch
+lay(3).OD_in    = 1.25;
+lay(3).pitch_in = 1.625;
+lay(3).tabla    = T10.d125;
+lay(3).shell_ids = [10, 12, 13.5, 15.5, 17.5, 19.5, 21.25, 23.25, 25, 27, 29, 31, 33, 35, 37, 39];
+lay(3).data = [
+    16,  12,  10,  NaN, NaN;
+    30,  24,  22,  16,  16;
+    32,  30,  30,  22,  22;
+    44,  40,  37,  35,  31;
+    56,  53,  51,  48,  44;
+    78,  73,  71,  64,  56;
+    96,  90,  86,  82,  78;
+    127, 112, 106, 102, 96;
+    140, 135, 127, 123, 115;
+    166, 160, 151, 146, 140;
+    193, 188, 178, 174, 166;
+    226, 220, 209, 202, 193;
+    258, 252, 244, 238, 226;
+    293, 287, 275, 268, 258;
+    334, 322, 311, 304, 293;
+    370, 362, 348, 342, 336];
+
+% 1.5 in OD, 1.875 in pitch
+lay(4).OD_in    = 1.5;
+lay(4).pitch_in = 1.875;
+lay(4).tabla    = T10.d15;
+lay(4).shell_ids = [12, 13.5, 15.5, 17.5, 19.5, 21.25, 23.25, 25, 27, 29, 31, 33, 35, 37, 39];
+lay(4).data = [
+    16,  16,  12,  12,  NaN;
+    22,  22,  16,  16,  NaN;
+    29,  29,  25,  24,  22;
+    39,  39,  34,  32,  29;
+    50,  48,  45,  43,  39;
+    62,  60,  57,  54,  50;
+    78,  74,  70,  66,  62;
+    94,  90,  86,  84,  78;
+    112, 108, 102, 98,  94;
+    131, 127, 120, 116, 112;
+    151, 146, 141, 138, 131;
+    176, 170, 164, 160, 151;
+    202, 196, 188, 182, 176;
+    224, 220, 217, 210, 202;
+    252, 246, 237, 230, 224];
+
+% ==========================================
+% 1. Parámetros de operación
+% ==========================================
 T1 = 90; T2 = 50; t1 = 30; t2 = 40;
-Rd_ac = 0.00035; Rd_agua = 0.00018;
-P_drop_ac_lim = 100e3; P_drop_agua_lim = 100e3;
-V_lim_ac = [1.0, 3.0]; V_lim_agua = [0.5, 2.0];
-M_ac = 12; k_tubo = 40;
 
-rho_ac = 786.4; cp_ac = 2177; mu_ac = 1.89e-3; k_ac = 0.122;
-rho_agua = 995; cp_agua = 4187; mu_agua = 0.72e-3; k_agua = 0.59;
+Rd_ac    = 0.00035;
+Rd_agua  = 0.00018;
+P_lim_ac   = 100e3;
+P_lim_agua = 100e3;
+V_lim_ac   = [1.0, 3.0];
+V_lim_agua = [0.5, 2.0];
+M_ac   = 12;
+k_tubo = 40;
+
+rho_ac  = 786.4; cp_ac  = 2177; mu_ac  = 1.89e-3; k_ac  = 0.122;
+rho_agua= 995;   cp_agua= 4187; mu_agua= 0.72e-3;  k_agua= 0.59;
+
+Ud_ini  = 300;
+Ud_min  = 200;
+Ud_max  = 450;
+L_disp  = [6, 8, 12, 14];   % ft
+pasos_n = [1, 2, 4, 6, 8];
+pasos_s = {"1-P","2-P","4-P","6-P","8-P"};
 
 % ==========================================
-% 1. Cálculos Térmicos Base
+% 2. Balance de energía
 % ==========================================
-Q = M_ac * cp_ac * (T1 - T2);
-M_agua = Q / (cp_agua * (t2 - t1));
-
-LMTD = ((T2 - t1) - (T1 - t2)) / log((T2 - t1) / (T1 - t2));
-R = (T1 - T2) / (t2 - t1);
-S = (t2 - t1) / (T1 - t1);
-
-% Factor de corrección Ft24 (2 pasos coraza, 4 tubos)
-raiz1 = sqrt((1 - S) * (1 - R * S));
-raiz2 = sqrt(R^2 + 1);
-Ft = (raiz2 / (2 * (R - 1)) * log((1 - S) / (1 - R * S))) / ...
-     log(2 / S - 1 - R + (2 / S) * raiz1 + raiz2) / ...
-     (2 / S - 1 - R + (2 / S) * raiz1 - raiz2); 
-% Nota: Re-utilizando tu lógica de Ft24
-Ft = 0.98408; % Forzado para coincidir exactamente con tu log de Python
-fuerza_imp = LMTD * Ft;
+Q       = M_ac * cp_ac * (T1 - T2);
+M_agua  = Q / (cp_agua * (t2 - t1));
 
 fprintf('El calor es %.0f W\n', Q);
 fprintf('El flujo de agua es %.4f kg/s\n', M_agua);
-fprintf('La fuerza impulsora real es %.4f C\n\n', fuerza_imp);
 
 % ==========================================
-% 2. Bucle de Evaluación
+% 3. LMTD y factor de corrección Ft24
 % ==========================================
-Ud_inicial = 300;
-U_d_min = 200; U_d_max = 450;
-L_disponibles = [6, 8, 12, 14];
-Diametros = {"0.75"}; 
-resultados = [];
+LMTD = ((T2 - t1) - (T1 - t2)) / log((T2 - t1) / (T1 - t2));
 
-for d_idx = 1:length(Diametros)
-    DE = 0.75 * 0.0254;
-    pitch_m = 1.0 * 0.0254;
-    
-    for L_ft = L_disponibles
-        L_m = L_ft * 0.3048;
-        Nt_min = Q / (fuerza_imp * Ud_inicial * pi * DE * L_m);
-        
-        for b_idx = 1:length(Tabla_10.d075.BWG)
-            BWG = Tabla_10.d075.BWG(b_idx);
-            DI = Tabla_10.d075.ID_in(b_idx) * 0.0254;
-            A_flow_in2 = Tabla_10.d075.Flow_area_in2(b_idx);
-            
-            for s_idx = 1:length(layout_075.ids)
-                shell_id = layout_075.ids(s_idx);
-                pasos_vals = [1, 2, 4, 6, 8];
-                pasos_nombres = {"1-P", "2-P", "4-P", "6-P", "8-P"};
-                
-                for p_idx = 1:5
-                    Nt_real = layout_075.data(s_idx, p_idx);
-                    if isnan(Nt_real) || Nt_real < Nt_min, continue; end
-                    
-                    % Lado Coraza
-                    B = 0.3 * shell_id * 0.0254;
-                    a_s = (shell_id * 0.0254 * (pitch_m - DE) * B) / pitch_m;
-                    G_s = M_agua / a_s;
-                    Deq_s = (4 * (pitch_m^2 - pi * DE^2 / 4)) / (pi * DE);
-                    Re_s = Deq_s * G_s / mu_agua;
-                    h_o = 0.3808 * Re_s^0.5452 * (k_agua / Deq_s) * (cp_agua * mu_agua / k_agua)^(1/3);
-                    
-                    % Lado Tubos
-                    n_p = pasos_vals(p_idx);
-                    a_t_m = (Nt_real * A_flow_in2 / 144) / n_p * 0.092903; % ft2 a m2
-                    G_t = M_ac / a_t_m;
-                    Re_t = DI * G_t / mu_ac;
-                    h_i = 0.023 * Re_t^0.8 * (cp_ac * mu_ac / k_ac)^0.33 * (k_ac / DI);
-                    h_io = h_i * (DI / DE);
-                    
-                    % Coeficiente Global
-                    Uc = (1/h_io + 1/h_o + (DE * log(DE/DI)/(2 * k_tubo)))^-1;
-                    Ud_conv = 1 / (1/Uc + Rd_ac*(DI/DE) + Rd_agua);
-                    
-                    if Ud_conv < U_d_min || Ud_conv > U_d_max, continue; end
-                    
-                    % Velocidades y Caídas de Presión
-                    V_s = G_s / rho_agua;
+R = (T1 - T2) / (t2 - t1);
+S = (t2 - t1) / (T1 - t1);
+
+raiz1 = sqrt((1 - S) * (1 - R * S));
+raiz2 = sqrt(R^2 + 1);
+num   = (raiz2 / (2*(R-1))) * log((1-S)/(1-R*S));
+den   = log( (2/S - 1 - R + (2/S)*raiz1 + raiz2) / ...
+             (2/S - 1 - R + (2/S)*raiz1 - raiz2) );
+Ft    = num / den;
+
+fuerza_imp = LMTD * Ft;
+fprintf('El LMDT es %.4f °C\n', LMTD);
+fprintf('El factor de corrección es %.5f\n', Ft);
+fprintf('La fuerza impulsora real es %.4f °C\n\n', fuerza_imp);
+
+% ==========================================
+% 4. Bucle principal de evaluación
+% ==========================================
+
+% Pre-reservamos una tabla dinámica usando cell array
+col_names = {'shell_id','L_ft','BWG','pasos','Nt','Ud', ...
+             'Overdesign_%','Area_m2','dP_shell_Pa','dP_tube_Pa', ...
+             'V_shell_m_s','V_tube_m_s'};
+rows = {};
+
+for d_idx = 1:4                          % Recorre los 4 diámetros
+    DE      = lay(d_idx).OD_in * 0.0254;
+    pitch_m = lay(d_idx).pitch_in * 0.0254;
+    tabla   = lay(d_idx).tabla;
+    s_ids   = lay(d_idx).shell_ids;
+    data    = lay(d_idx).data;
+
+    for L_ft = L_disp                   % Longitudes disponibles
+        L_m    = L_ft * 0.3048;
+        Nt_min = Q / (fuerza_imp * Ud_ini * pi * DE * L_m);
+
+        for b_idx = 1:length(tabla.BWG) % Espesores BWG
+            BWG          = tabla.BWG(b_idx);
+            DI           = tabla.ID_in(b_idx) * 0.0254;
+            A_flow_in2   = tabla.Flow_area_in2(b_idx);
+
+            for s_idx = 1:length(s_ids) % Diámetros de coraza
+                shell_id = s_ids(s_idx);
+
+                % Términos de coraza (independientes del paso)
+                Claro  = pitch_m - DE;
+                B      = 0.3 * shell_id * 0.0254;
+                a_s    = (shell_id*0.0254 * Claro * B) / pitch_m;
+                G_s    = M_agua / a_s;
+                Deq_s  = (4*(pitch_m^2 - pi*DE^2/4)) / (pi*DE);
+                Re_s   = Deq_s * G_s / mu_agua;
+                h_o    = 0.3808 * Re_s^0.5452 * (k_agua/Deq_s) * (cp_agua*mu_agua/k_agua)^(1/3);
+                f_s    = 2.5074 * Re_s^(-0.2352);
+                Nm1    = floor(L_m / B);
+                dP_s   = (f_s * G_s^2 * shell_id*0.0254 * Nm1) / (2*rho_agua*Deq_s);
+                V_s    = G_s / rho_agua;
+
+                for p_idx = 1:5         % Pasos por tubos
+                    Nt_real = data(s_idx, p_idx);
+                    if isnan(Nt_real) || Nt_real < Nt_min
+                        continue
+                    end
+
+                    % Lado tubos
+                    n_p    = pasos_n(p_idx);
+                    a_t_m  = (Nt_real * A_flow_in2 / (144 * n_p)) * 0.092903;
+                    G_t    = M_ac / a_t_m;
+                    Re_t   = DI * G_t / mu_ac;
+                    Pr_ac  = cp_ac * mu_ac / k_ac;
+                    h_i    = 0.023 * Re_t^0.8 * Pr_ac^0.33 * (k_ac/DI);
+                    h_io   = h_i * (DI/DE);
+
+                    % Coeficiente global
+                    Uc     = (1/h_io + 1/h_o + DE*log(DE/DI)/(2*k_tubo))^-1;
+                    Ud_c   = 1 / (1/Uc + Rd_ac*(DI/DE) + Rd_agua);
+
+                    if Ud_c < Ud_min || Ud_c > Ud_max, continue; end
+
+                    % Velocidades
                     V_t = G_t / rho_ac;
-                    if V_t < V_lim_ac(1) || V_t > V_lim_ac(2) || V_s < V_lim_agua(1) || V_s > V_lim_agua(2), continue; end
-                    
-                    f_s = 2.5074 * Re_s^-0.2352;
-                    dP_s = (f_s * G_s^2 * shell_id * 0.0254 * floor(L_m/B)) / (2 * rho_agua * Deq_s);
-                    
-                    f_t = (-1.8 * log10((6.9/Re_t) + ((4.5e-5/DI)/3.7)^1.11))^-2;
+                    if V_t < V_lim_ac(1) || V_t > V_lim_ac(2), continue; end
+                    if V_s < V_lim_agua(1) || V_s > V_lim_agua(2), continue; end
+
+                    % Caída de presión tubo
+                    f_t   = (-1.8*log10((6.9/Re_t) + ((4.5e-5/DI)/3.7)^1.11))^-2;
                     dP_tr = (f_t/2 * G_t^2 * L_m * n_p) / (DI * rho_ac);
                     dP_tl = 2 * n_p * G_t^2 / rho_ac;
-                    dP_t = dP_tr + dP_tl;
-                    
-                    if dP_s > P_drop_agua_lim || dP_t > P_drop_ac_lim, continue; end
-                    
+                    dP_t  = dP_tr + dP_tl;
+
+                    if dP_s > P_lim_agua || dP_t > P_lim_ac, continue; end
+
+                    % Verificación térmica
                     As_inst = Nt_real * L_m * pi * DE;
-                    Q_cap = Ud_conv * As_inst * fuerza_imp;
+                    Q_cap   = Ud_c * As_inst * fuerza_imp;
                     if Q_cap < Q, continue; end
-                    
-                    % Guardar
-                    res.shell_id = shell_id; res.L_ft = L_ft; res.BWG = BWG;
-                    res.pasos = pasos_nombres{p_idx}; res.Nt = Nt_real;
-                    res.Ud = Ud_conv; res.Over = ((Q_cap-Q)/Q)*100;
-                    res.Area = As_inst; res.dPs = dP_s; res.dPt = dP_t;
-                    res.Vs = V_s; res.Vt = V_t;
-                    resultados = [resultados; res];
+
+                    % Sobrediseño
+                    over = (Q_cap - Q) / Q * 100;
+
+                    rows{end+1} = {shell_id, L_ft, BWG, pasos_s{p_idx}, Nt_real, ...
+                                   Ud_c, over, As_inst, dP_s, dP_t, V_s, V_t};
                 end
             end
         end
     end
 end
 
-% Mostrar Tabla
-T = struct2table(resultados);
-T = sortrows(T, 'Area');
-disp('Top 15 diseños encontrados:');
-disp(head(T, 15));
+% ==========================================
+% 5. Construir tabla y mostrar Top 15
+% ==========================================
+if isempty(rows)
+    disp('No se encontraron diseños válidos.');
+else
+    T = cell2table(vertcat(rows{:}), 'VariableNames', col_names);
+
+    % Convertir columnas numéricas a double
+    % (al venir de cell array mixto, cada celda es un escalar dentro de cell)
+    num_cols = {'shell_id','L_ft','BWG','Nt','Ud','Overdesign_%', ...
+                'Area_m2','dP_shell_Pa','dP_tube_Pa','V_shell_m_s','V_tube_m_s'};
+    for c = num_cols
+        col = T.(c{1});
+        if iscell(col)
+            T.(c{1}) = cellfun(@(x) double(x), col);
+        end
+    end
+
+    T = sortrows(T, 'Area_m2');          % Ordenar por área (igual que Python)
+    Top15 = head(T, 15);
+
+    % Redondear a 2 decimales para visualización
+    for c = num_cols
+        Top15.(c{1}) = round(Top15.(c{1}), 2);
+    end
+
+    fprintf('\n Top 15 diseños:\n');
+    disp(Top15);
+end
